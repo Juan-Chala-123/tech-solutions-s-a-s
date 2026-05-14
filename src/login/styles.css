@@ -93,3 +93,22 @@ button {
 button:hover {
     opacity: 0.9;
 }
+
+@media (max-width: 480px) {
+    .login-container {
+        padding: 1.5rem;
+        margin: 0 16px;
+    }
+    h1 {
+        font-size: 1.25rem;
+        margin-bottom: 1.5rem;
+    }
+    input {
+        padding: 0.7rem;
+        font-size: 0.95rem;
+    }
+    button {
+        padding: 0.7rem;
+        font-size: 0.95rem;
+    }
+}
