@@ -9,15 +9,70 @@
 <body>
     <div class="login-container">
         <h1>Tech Solutions S.A.S</h1>
-        <form class="login-form">
-            <label for="username">Usuario</label>
-            <input type="text" id="username" name="username" placeholder="Ingresa tu usuario" required>
+        <form class="login-form" id="loginForm">
+            <label for="email">Correo electrónico</label>
+            <input type="email" id="email" name="email" placeholder="Ingresa tu correo" required>
+            <small class="error-message" id="emailError"></small>
 
             <label for="password">Contraseña</label>
             <input type="password" id="password" name="password" placeholder="Ingresa tu contraseña" required>
+            <small class="error-message" id="passwordError"></small>
 
             <button type="submit">Iniciar sesión</button>
         </form>
     </div>
+
+    <script>
+        const form = document.getElementById('loginForm');
+        const email = document.getElementById('email');
+        const password = document.getElementById('password');
+        const emailError = document.getElementById('emailError');
+        const passwordError = document.getElementById('passwordError');
+
+        function setError(input, errorEl, message) {
+            errorEl.textContent = message;
+            input.classList.toggle('error', !!message);
+        }
+
+        function validateEmail() {
+            const value = email.value.trim();
+            const atIndex = value.indexOf('@');
+            if (!value) {
+                setError(email, emailError, 'El correo es requerido');
+                return false;
+            }
+            if (atIndex < 1 || atIndex === value.length - 1) {
+                setError(email, emailError, 'Ingresa un correo válido (ej: usuario@dominio.com)');
+                return false;
+            }
+            setError(email, emailError, '');
+            return true;
+        }
+
+        function validatePassword() {
+            const value = password.value.trim();
+            if (!value) {
+                setError(password, passwordError, 'La contraseña es requerida');
+                return false;
+            }
+            if (value.length < 6) {
+                setError(password, passwordError, 'La contraseña debe tener al menos 6 caracteres');
+                return false;
+            }
+            setError(password, passwordError, '');
+            return true;
+        }
+
+        email.addEventListener('blur', validateEmail);
+        password.addEventListener('blur', validatePassword);
+
+        form.addEventListener('submit', function (e) {
+            const isEmailValid = validateEmail();
+            const isPasswordValid = validatePassword();
+            if (!isEmailValid || !isPasswordValid) {
+                e.preventDefault();
+            }
+        });
+    </script>
 </body>
 </html>
