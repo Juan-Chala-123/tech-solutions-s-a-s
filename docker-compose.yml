@@ -1,0 +1,15 @@
+services:
+  jenkins:
+    container_name: jenkins-container
+    image: jenkins/jenkins:2.555.1-lts-jdk25
+    restart: unless-stopped
+    user: root
+    ports:
+      - 9090:8080
+      - 50000:50000
+    volumes:
+      - jenkins_home:/var/jenkins_home
+      - /var/run/docker.sock:/var/run/docker.sock
+
+volumes:
+  jenkins_home:
