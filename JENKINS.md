@@ -43,3 +43,7 @@ jenkins_home:
 #### Instalacion de Discord Notifier
 
 ![Discord Notifier](public/images/discord-notifier.png)
+
+#### Notificacion a un servidor de Discord
+
+![Notificacion Discord](public/images/discord-nitifier1.png)
