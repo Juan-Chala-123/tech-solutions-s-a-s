@@ -152,6 +152,10 @@ ${files}
 
 ![Discord Notifier](public/images/discord-notifier.png)
 
-#### Notificacion a un servidor de Discord
+#### Notificación a un servidor de Discord
 
 ![Notificacion Discord](public/images/discord-nitifier1.png)
+
+#### NOtificación a un correo electrónico
+
+![Notificacion Gmail](public/images/email-notifier.png)
