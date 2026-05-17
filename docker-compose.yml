@@ -1,6 +1,6 @@
 services:
   jenkins:
-    container_name: jenkins-container
+    container_name: jenkins-container-test
     image: jenkins/jenkins:2.555.1-lts-jdk25
     restart: unless-stopped
     user: root
