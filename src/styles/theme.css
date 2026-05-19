@@ -18,6 +18,6 @@
   --green: #4ecb88;
   --green-dim: rgba(78,203,136,0.12);
   --radius: 10px;
-  --font-sans: 'Syne', sans-serif;
+  --font-sans: system-ui, sans-serif;
   --font-mono: 'DM Mono', monospace;
 }
