@@ -30,7 +30,7 @@ jenkins_home:
 
 ### Pipeline
 
-```pipeline
+```groovy
 pipeline {
 
     agent any
@@ -38,16 +38,74 @@ pipeline {
     environment {
         DISCORD_WEBHOOK = 'https://discord.com/api/webhooks/1505306840840405097/NWfTBhFl-kTtM-FugxexifsEu5vssELfe1mCSN5PjEBGbXzjJbXbISQNyixkuICxjhYi'
     }
+    
 
     stages {
 
+        // Clona automáticamente el repositorio desde GitHub
         stage('Clonar repositorio') {
             steps {
                 git branch: 'main',
                     url: 'https://github.com/Juan-Chala-123/tech-solutions-s-a-s.git'
             }
         }
+        
+        // Instala tidy en el agente
+        stage('Instalar herramientas') {
+            steps {
+                sh '''
+                    apt-get update
+                    apt-get install -y tidy
+                '''
+            }
+        }
 
+        /*
+        Valida:
+        - etiquetas HTML
+        - estructura
+        - errores de sintaxis
+        */
+        stage('Validar HTML') {
+            steps {
+                script {
+
+                    def archivos = sh(
+                        script: 'find . -name "*.html"',
+                        returnStdout: true
+                    ).trim()
+
+                    if (!archivos) {
+                        error("No se encontraron archivos HTML")
+                    }
+
+                    def salidaTidy = sh(
+                        script: '''
+                            find . -name "*.html" -exec tidy -qe {} \\; 2>&1 || true
+                        ''',
+                        returnStdout: true
+                    ).trim()
+
+                    env.HTML_ERRORS = salidaTidy
+
+                    if (salidaTidy) {
+                        echo "❌ Se encontraron errores HTML"
+                        error("Errores HTML detectados:\\n${salidaTidy}")
+                    } else {
+                        echo "✅ HTML válido"
+                    }
+                }
+            }
+        }
+        
+        // Aqui fingimos validar css, pero realmente no
+        stage('Validar CSS') {
+            steps {
+                sh 'echo "Validación CSS básica OK"'
+            }
+        }
+
+        // Aqui simulamos 
         stage('Build') {
             steps {
                 echo 'Construcción completada'
@@ -61,10 +119,10 @@ pipeline {
         }
     }
 
+    // Notificamos por medio de discord y gmail
     post {
-
+        // Si esta bien, mostramos el commit, los archivos modificados, el respoensable, etc...
         success {
-
             script {
 
                 def commitId = sh(
@@ -130,13 +188,43 @@ ${files}
         }
 
         failure {
+            // Si esta encuentra errores, por ejemplo en HTML, detecta en que lineas las encontro y ls muestra.
+            script {
+                // Obtenemos los errores directamente de la variable de entorno que guardamos en el stage
+                def errorLog = env.HTML_ERRORS ? env.HTML_ERRORS : "Error desconocido (revisa los logs generales de Jenkins)."
+                
+                // Sanitizamos para el JSON de Discord
+                errorLog = errorLog.replace('\\', '\\\\').replace('"', '\\"').replace('\r', '').replace('\n', '\\\\n')
 
-            sh '''
-                curl -H "Content-Type: application/json" \
-                -X POST \
-                -d "{\"content\":\"❌ PIPELINE FALLÓ\"}" \
-                $DISCORD_WEBHOOK
-            '''
+                if (errorLog.length() > 1200) {
+                    errorLog = errorLog.take(1200) + "\\\\n... [Log truncado por espacio] ..."
+                }
+                
+                writeFile file: 'discord-error.json', text: """
+{
+  "content": "❌ **PIPELINE FALLÓ**\\n\\n📦 **Proyecto:** ${env.JOB_NAME}\\n🌿 **Rama:** main\\n\\n⚠ **Reporte de Errores de Sintaxis:**\\n```\\n${errorLog}\\n```"
+}
+"""
+                
+                sh '''
+                    curl -H "Content-Type: application/json" \
+                    -X POST \
+                    -d @discord-error.json \
+                    $DISCORD_WEBHOOK
+                '''
+
+                emailext(
+                    to: 'juanpablochalaramirez@gmail.com',
+                    subject: "❌ Pipeline falló - ${env.JOB_NAME}",
+                    body: """
+                    <h2>El pipeline falló en la validación</h2>
+                    <p><b>Proyecto:</b> ${env.JOB_NAME}</p>
+                    <p><b>Errores detectados en los archivos:</b></p>
+                    <pre style="background-color: #f8d7da; color: #721c24; padding: 10px; border: 1px solid #f5c6cb;">${errorLog.replace('\\\\n', '<br>')}</pre>
+                    """,
+                    mimeType: 'text/html'
+                )
+            }
         }
     }
 }
@@ -156,6 +244,16 @@ ${files}
 
 ![Notificacion Discord](public/images/discord-nitifier1.png)
 
-#### NOtificación a un correo electrónico
+#### Notificación a un correo electrónico
 
 ![Notificacion Gmail](public/images/email-notifier.png)
+
+#### Notificar errores
+
+![error notifier](public/images/notifier-errors.png)
+
+#### Discord y Gmail
+
+![discord-errors](public/images/discord-errors.png)
+
+![gmail errors](public/images/gmail-errors.png)
