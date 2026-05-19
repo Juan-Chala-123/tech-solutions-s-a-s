@@ -81,14 +81,18 @@ pipeline {
 
                     def salidaTidy = sh(
                         script: '''
-                            find . -name "*.html" -exec tidy -qe {} \\; 2>&1 || true
+                            find . -name "*.html" | while read file; do
+                                echo "> $file"
+                                tidy -qe "$file" 2>&1
+                                echo ""
+                            done || true
                         ''',
                         returnStdout: true
                     ).trim()
 
                     env.HTML_ERRORS = salidaTidy
 
-                    if (salidaTidy) {
+                    if (salidaTidy.contains("Warning") || salidaTidy.contains("Error")) {
                         echo "❌ Se encontraron errores HTML"
                         error("Errores HTML detectados:\\n${salidaTidy}")
                     } else {
@@ -257,3 +261,9 @@ ${files}
 ![discord-errors](public/images/discord-errors.png)
 
 ![gmail errors](public/images/gmail-errors.png)
+
+#### Solucionando los errors
+
+![Discord Good](public/images/discord-good.png)
+
+![Gmail Good](public/images/gmail-good.png)
